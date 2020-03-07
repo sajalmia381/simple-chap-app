@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Thread for {% if user != object.first %}{{ object.first }}{% else %}{{ object.second }}{% endif %}</h3>
+<ul id='chat-items'>
+{% for chat in object.chatmessage_set.all %}
+
+<li>{{ chat.message }} via {{ chat.user }}</li>
+
+{% endfor %}
+</ul>
+
+<form id='form' method='POST' enctype="multipart/form-data"> {% csrf_token %}
+{{ form.as_p }}
+<input type='submit' class='btn btn-primary'/>
+</form>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+// websocket scripts
+let loc = window.location;
+let getForm = $('#form')
+let host = loc.host;
+let path = loc.pathname;
+let webStart = 'ws://';
+if (loc.protocol == 'https:'){
+	webStart = 'wss://';
+}
+let endpoint = webStart + host + path;
+let socket = new WebSocket(endpoint);
+socket.onmessage = function function_name(e) {
+	console.log('message', e)
+}
+socket.onopen = function function_name(e) {
+	console.log('open', e);
+	getForm.submit(function(event) {
+		// event.preventDefault();
+		data = $(this).serialize();
+		console.log($('[name="image"]').val());
+		console.log(data);
+		socket.send(data);
+	})
+}
+socket.onerror = function function_name(e) {
+	console.log('error', e)
+}
+socket.onclose = function function_name(e) {
+	console.log('close', e)
+}
+</script>
+{% endblock %}
